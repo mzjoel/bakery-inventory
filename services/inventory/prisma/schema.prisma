@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) // This should be present  
+  updatedAt   DateTime @updatedAt // Optional, but useful for tracking updates  
+
+
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  categoryId  String   @db.ObjectId
+  category    Category @relation(fields: [categoryId], references: [id])
+  productDetails ProductDetail[]
+  createdAt   DateTime @default(now()) // This should be present  
+  updatedAt   DateTime @updatedAt // Optional, but useful for tracking updates  
+
+
+  @@map("products")
+}
+
+model ProductDetail {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  batchNumber  String?
+  quantity     Int      @default(0)
+  expiredAt    DateTime?
+  productId    String   @db.ObjectId
+  product      Product  @relation(fields: [productId], references: [id])
+  createdAt   DateTime @default(now()) // This should be present  
+  updatedAt   DateTime @updatedAt // Optional, but useful for tracking updates  
+
+
+  @@map("product_details")
+}
+
+model ProductLog {  
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId  
+  product_id  String   @db.ObjectId // ID produk yang direquest  
+  quantity    Int      // Stok yang direquest  
+  message     String   // Pesan jika diterima atau ditolak  
+  status      String   // Status: Accepted atau Rejected  
+  createdAt   DateTime @default(now()) // Waktu pencatatan  
+  @@map("product_log")
+}  

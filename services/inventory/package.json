@@ -1,0 +1,28 @@
+{
+  "name": "inventory",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "axios": "^1.9.0",
+    "body-parser": "^1.20.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "express-graphql": "^0.12.0",
+    "express-validator": "^7.1.0",
+    "graphql": "^15.10.1",
+    "graphql-http": "^1.22.4",
+    "json-server": "^1.0.0-beta.3",
+    "nodemon": "^3.1.10"
+  },
+  "devDependencies": {
+    "@prisma/client": "^6.9.0",
+    "prisma": "^6.9.0"
+  }
+}
