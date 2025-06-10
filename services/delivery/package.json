@@ -1,5 +1,5 @@
 {
-  "name": "inventory",
+  "name": "delivery",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -23,6 +23,6 @@
   },
   "devDependencies": {
     "@prisma/client": "^6.9.0",
-    "prisma": "^5.20.0"
+    "prisma": "^6.9.0"
   }
 }

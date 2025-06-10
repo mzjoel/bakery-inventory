@@ -1,11 +1,12 @@
- saya sedang membangun sistem delivery produk dari gudang ke toko ini merupakan schema model, dengan schema model tersebut
- buatkan fungsionalitas berupa method pada controller pada express js untuk membuat delivery dengan request body yang harus dikirim ke sistem berupa 
-    - informasi produk yang dikirim
-    - informasi pengirim 
- ketika data sudah diinputkan ke sistem, sistem akan menghasilkan resposne body berupa 
-    - informasi pengiriman (status onprocess),
-    - informasi produk yang dikirim
-    - informasi pengirim
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "mongodb"
@@ -14,14 +15,15 @@ datasource db {
 
 model Delivery {
   id              String           @id @default(auto()) @map("_id") @db.ObjectId
-  deliveryId      String
+  deliveryId      String           @unique 
   deliveryDate    DateTime         @default(now())
   receivedDate    DateTime?       
   status          DeliveryStatus
   driver          String      
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  deletedAt       DateTime?        
+  deletedAt       DateTime?
+  details         DeliveryDetail[]  @relation("DeliveryDetails")          
   
   @@map("delivery")
 }
@@ -35,7 +37,7 @@ model DeliveryDetail {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime? 
-
+  delivery    Delivery @relation("DeliveryDetails", fields: [deliveryId], references: [id])  
   @@map("delivery_detail")
 }
 
@@ -45,5 +47,3 @@ enum DeliveryStatus {
   DELIVERED
   CANCELLED
 }
-
-

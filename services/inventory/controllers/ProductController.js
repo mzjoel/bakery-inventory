@@ -19,7 +19,7 @@ const findProducts = async (req, res) => {
   
         // Mengirimkan respons  
         res.status(200).send({  
-            success: true,  
+            success: truse,  
             message: "Get All Products Successfully",  
             data: products,  
         });  
