@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) // This should be present  
+  updatedAt   DateTime @updatedAt // Optional, but useful for tracking updates  
+
+
+  materials    Material[]
+
+  @@map("categories")
+}
+
+model Material {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  categoryId  String   @db.ObjectId
+  category    Category @relation(fields: [categoryId], references: [id])
+  materialDetails MaterialDetail[]
+  createdAt   DateTime @default(now()) // This should be present  
+  updatedAt   DateTime @updatedAt // Optional, but useful for tracking updates  
+
+
+  @@map("materials")
+}
+
+model MaterialDetail {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  batchNumber  String?
+  quantity     Int      @default(0)
+  expiredAt    DateTime?
+  materialId    String   @db.ObjectId
+  material      Material  @relation(fields: [materialId], references: [id])
+  createdAt   DateTime @default(now()) // This should be present  
+  updatedAt   DateTime @updatedAt // Optional, but useful for tracking updates  
+
+
+  @@map("material_details")
+}
+
+model materialLog {  
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId  
+  material_id  String   @db.ObjectId // ID produk yang direquest  
+  quantity    Int      // Stok yang direquest  
+  message     String   // Pesan jika diterima atau ditolak  
+  status      String   // Status: Accepted atau Rejected  
+  createdAt   DateTime @default(now()) // Waktu pencatatan  
+  @@map("material_log")
+}  

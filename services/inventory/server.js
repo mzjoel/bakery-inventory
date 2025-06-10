@@ -13,5 +13,5 @@ app.use('/graphql', graphqlHTTP({
 }));  
   
 app.listen(PORT, () => {  
-    console.log(`Server is running on http://localhost:${PORT}/inventory-service`);  
+    console.log(`Server is running on http://localhost:${PORT}/graphql`);  
 });  
