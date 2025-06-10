@@ -26,39 +26,39 @@ const resolvers = {
   
     // Mutations  
     createDelivery: async ({ input }) => {  
-        const { details, driver } = input;  
+    const { details, driver } = input;  
   
-        // Validasi input  
-        if (!details || !driver) {  
-            throw new Error('Informasi produk dan pengirim harus disediakan.');  
-        }  
+    // Validasi input  
+    if (!details || !driver) {  
+        throw new Error('Informasi produk dan pengirim harus disediakan.');  
+    }  
   
-        // Membuat entri pengiriman  
-        const delivery = await prisma.delivery.create({  
-            data: {  
-                deliveryId: generateUniqueDeliveryId(),  
-                status: 'IN_PROGRESS',  
-                driver: driver,  
-                details: {  
-                    create: details.map(detail => ({  
-                        productId: detail.productId,  
-                        quantity: detail.quantity,  
-                        notes: detail.notes,  
-                    })),  
-                },  
+    // Membuat entri pengiriman  
+    const delivery = await prisma.delivery.create({  
+        data: {  
+            deliveryId: generateUniqueDeliveryId(),  
+            status: 'IN_PROGRESS',  
+            driver: driver,  
+            details: {  
+                create: details.map(detail => ({  
+                    productId: detail.productId,  
+                    quantity: detail.quantity,  
+                    notes: detail.notes,  
+                })),  
             },  
-            include: { details: true },  
-        });  
+        },  
+        include: { details: true },  
+    });  
   
-        return {  
-            id: delivery.id,  
-            deliveryId: delivery.deliveryId,  
-            deliveryDate: delivery.deliveryDate,  
-            status: delivery.status,  
-            driver: delivery.driver,  
-            details: delivery.details,  
-        };  
-    },  
+    return {  
+        id: delivery.id,  
+        deliveryId: delivery.deliveryId,  
+        deliveryDate: delivery.deliveryDate,  
+        status: delivery.status,  
+        driver: delivery.driver,  
+        details: delivery.details,  // Pastikan ini ada  
+    };  
+},    
     updateDeliveryStatus: async ({ deliveryId, status }) => {  
         if (!status) {  
             throw new Error('Status tidak tersedia');  
