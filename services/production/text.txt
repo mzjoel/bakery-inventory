@@ -1,0 +1,51 @@
+Buatkan saya metode pada controller production service untuk requestProduction, berfungsi menerima request production
+ketika request diterima status secara bawaan "Material Check"
+
+Berikut model schema yang digunakan
+
+model Production {
+  id                String            @id @default(auto()) @map("_id") @db.ObjectId
+  batchNumber       String            @unique
+  productId         String
+  productName       String
+  requestedQuantity Int
+  producedQuantity  Int               @default(0)
+  status            ProductionStatus  @default(PENDING)
+  requestedBy       String
+  startTime         DateTime?
+  endTime           DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  details           ProductionDetail[]
+  
+  @@map("production")
+}
+
+
+
+model ProductionDetail {
+  id                 String          @id @default(auto()) @map("_id") @db.ObjectId
+  productionId       String          @db.ObjectId
+  materialId         String
+  materialName       String
+  requiredQuantity   Float
+  usedQuantity       Float           @default(0)
+  unit               String
+  createdAt          DateTime        @default(now())
+  
+
+  production        Production @relation(fields: [productionId], references: [id], onDelete: Cascade)
+  
+  @@map("production_detail")
+}
+
+enum ProductionStatus {
+  PENDING
+  MATERIAL_CHECK
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
