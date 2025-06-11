@@ -95,12 +95,10 @@ const createMaterial = async (req, res) => {
 
 const findMaterialById = async (req, res) => {
 
-    //get ID from params
     const { id } = req.params;
 
     try {
 
-        //get post by ID
         const material = await prisma.material.findUnique({
             where: {
                 id: id,
@@ -243,124 +241,116 @@ const deleteMaterial = async (req, res) => {
 };
 
 
-const requestStock = async (req, res) => {  
-    const { materialId, requestedQuantity } = req.body; 
+const requestStock = async (req, res) => {    
+    const { materialId, requestedQuantity } = req.body;   
   
-    try {   
-        const material = await prisma.material.findUnique({  
-            where: { id: materialId },  
-            include: {  
-                materialDetails: true, 
-            },  
-        });  
-
-        if (!material) {  
-            const logEntry = await prisma.MaterialLog.create({  
-                data: {  
-                    material_id: materialId,  
-                    quantity: requestedQuantity,  
-                    message: "Material not found",  
-                    status: "Rejected",  
-                },  
-            });  
+    try {     
+        // Mencari material berdasarkan ID  
+        const material = await prisma.material.findUnique({    
+            where: { id: materialId },    
+            include: { materialDetails: true },    
+        });    
   
-            return res.status(404).send({  
-                statusCode: 404,  
-                data: [  
-                    {  
-                        MaterialId: materialId,  
-                        MaterialName: "Unknown",
-                        StokRequest: requestedQuantity,  
-                        Message: "Material not found",  
-                    },  
-                ],  
-            });  
-        }  
+        // Jika material tidak ditemukan  
+        if (!material) {    
+            await prisma.MaterialLog.create({    
+                data: {    
+                    material_id: materialId,    
+                    quantity: requestedQuantity,    
+                    message: "Material not found",    
+                    status: "Rejected",    
+                },    
+            });    
+            return res.status(404).send({    
+                statusCode: 404,    
+                data: [{    
+                    MaterialId: materialId,    
+                    MaterialName: "Unknown",    
+                    StokRequest: requestedQuantity,    
+                    Message: "Material not found",    
+                }],    
+            });    
+        }    
   
-        const totalStock = material.materialDetails.reduce((total, detail) => {  
-            return total + detail.quantity;  
-        }, 0);  
-
-        if (requestedQuantity > totalStock) {  
-            const logEntry = await prisma.MaterialLog.create({  
-                data: {  
-                    material_id: materialId,  
-                    quantity: requestedQuantity,  
-                    message: "Request ditolak",  
-                    status: "Rejected",  
-                },  
-            });  
+        // Menghitung total stok  
+        const totalStock = material.materialDetails.reduce((total, detail) => total + detail.quantity, 0);    
   
-            return res.status(400).send({  
-                statusCode: 400,  
-                data: [  
-                    {  
-                        MaterialId: material.id,  
-                        MaterialName: material.name,  
-                        StokRequest: requestedQuantity,  
-                        Stok: totalStock,  
-                        Message: "Request ditolak",  
-                    },  
-                ],  
-            });  
-        }  
+        // Jika permintaan melebihi total stok  
+        if (requestedQuantity > totalStock) {    
+            await prisma.MaterialLog.create({    
+                data: {    
+                    material_id: materialId,    
+                    quantity: requestedQuantity,    
+                    message: "Request ditolak",    
+                    status: "Rejected",    
+                },    
+            });    
+            return res.status(400).send({    
+                statusCode: 400,    
+                data: [{    
+                    MaterialId: material.id,    
+                    MaterialName: material.name,    
+                    StokRequest: requestedQuantity,    
+                    Stok: totalStock,    
+                    Message: "Request ditolak",    
+                }],    
+            });    
+        }    
   
-        let remainingQuantity = requestedQuantity;  
+        // Mengurangi stok sesuai permintaan  
+        let remainingQuantity = requestedQuantity;    
+        for (const detail of material.materialDetails) {    
+            if (remainingQuantity <= 0) break;    
   
-        for (const detail of material.materialDetails) {  
-            if (remainingQuantity <= 0) break;  
+            if (detail.quantity >= remainingQuantity) {    
+                await prisma.materialDetail.update({    
+                    where: { id: detail.id },    
+                    data: { quantity: detail.quantity - remainingQuantity },    
+                });    
+                remainingQuantity = 0;   
+            } else {    
+                remainingQuantity -= detail.quantity;    
+                await prisma.materialDetail.update({    
+                    where: { id: detail.id },    
+                    data: { quantity: 0 },    
+                });    
+            }    
+        }    
   
-            if (detail.quantity >= remainingQuantity) {  
-                await prisma.materialDetail.update({  
-                    where: { id: detail.id },  
-                    data: { quantity: detail.quantity - remainingQuantity },  
-                });  
-                remainingQuantity = 0; 
-            } else {  
-                remainingQuantity -= detail.quantity;  
-                await prisma.materialDetail.update({  
-                    where: { id: detail.id },  
-                    data: { quantity: 0 },  
-                });  
-            }  
-        }  
- 
-        await prisma.MaterialLog.create({  
-            data: {  
-                material_id: materialId,  
-                quantity: requestedQuantity,  
-                message: "Request Bahan Baku Berhasil",  
-                status: "Accepted",  
-            },  
-        });  
+        // Mencatat log permintaan yang berhasil  
+        await prisma.MaterialLog.create({    
+            data: {    
+                material_id: materialId,    
+                quantity: requestedQuantity,    
+                message: "Request Bahan Baku Berhasil",    
+                status: "Accepted",    
+            },    
+        });    
   
-        res.status(200).send({  
-            statusCode: 200,  
-            data: [  
-                {  
-                    MaterialId: material.id,  
-                    MaterialName: material.name,  
-                    StokRequest: requestedQuantity,  
-                    Message: "Request Produk Berhasil",  
-                },  
-            ],  
-        });  
+        // Mengirimkan respons sukses  
+        res.status(200).send({    
+            statusCode: 200,    
+            data: [{    
+                MaterialId: material.id,    
+                MaterialName: material.name,    
+                StokRequest: requestedQuantity,    
+                Message: "Request Produk Berhasil",    
+            }],    
+        });    
   
-    } catch (error) {  
-        console.error(error);  
-        res.status(500).send({  
-            statusCode: 500,  
-            data: [  
-                {  
-                    MaterialId: materialId,  
-                    MaterialName: "Unknown", 
-                    StokRequest: requestedQuantity,  
-                    Message: "Internal server error",  
-                },  
-            ],  
-        });  
-    }  
-};
+    } catch (error) {    
+        console.error(error);    
+        res.status(500).send({    
+            statusCode: 500,    
+            data: [{    
+                MaterialId: materialId,    
+                MaterialName: "Unknown",    
+                StokRequest: requestedQuantity,    
+                Message: "Internal server error",    
+            }],    
+        });    
+    }    
+};  
 
 const getMaterialLogs = async (req, res) => {  
     const { status } = req.query; 

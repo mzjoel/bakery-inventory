@@ -1,152 +1,154 @@
-const { PrismaClient } = require('@prisma/client');    
-const prisma = new PrismaClient();    
+const { PrismaClient } = require('@prisma/client');  
+const bcrypt = require('bcrypt');  
+const jwt = require('jsonwebtoken');  
+const prisma = new PrismaClient();  
   
-const resolvers = {    
-    // Queries    
-    materials: async () => {    
-        return await prisma.material.findMany({    
-            include: {    
-                category: true,    
-                materialDetails: true,    
-            },    
-        });    
-    },    
-    material: async ({ id }) => {    
-        return await prisma.material.findUnique({    
-            where: { id: id },    
-            include: {    
-                category: true,    
-                materialDetails: true,    
-            },    
-        });    
-    },    
-    materialLogs: async ({ status }) => {    
-        return await prisma.materialLog.findMany({    
-            where: status ? { status: status } : {},    
-            orderBy: {    
-                createdAt: 'desc',    
-            },    
-        });    
-    },    
+const generateToken = (userId) => {  
+    return jwt.sign({ id: userId }, 'jkfjaojrmmkdmfaokp', { expiresIn: '5h' });  
+};  
   
-    // Mutations    
-    createMaterial: async ({ input }) => {    
-        const { name, description, categoryId, details } = input;    
-        return await prisma.material.create({    
-            data: {    
-                name,    
-                description,    
-                category: { connect: { id: categoryId } },    
-                materialDetails: {    
-                    create: details.map(detail => ({    
-                        batchNumber: detail.batchNumber,    
-                        quantity: detail.quantity,    
-                        expiredAt: detail.expiredAt ? new Date(detail.expiredAt) : null,    
-                    })),    
-                },    
-            },    
-            include: {    
-                category: true,    
-                materialDetails: true,    
-            },    
-        });    
-    },    
-    updateMaterial: async ({ id, input }) => {    
-        const { name, description, categoryId, details, quantity } = input;    
-        const material = await prisma.material.findUnique({ where: { id: id } });    
-    
-        if (!material) {    
-            throw new Error("Material not found");    
-        }    
-    
-        const updateData = {};    
-        if (name) updateData.name = name;    
-        if (description) updateData.description = description;    
-        if (categoryId) updateData.categoryId = categoryId;    
-    
-        const updatedMaterial = await prisma.material.update({    
-            where: { id: id },    
-            data: updateData,    
-            include: {    
-                category: true,    
-                materialDetails: true,    
-            },    
-        });    
-    
-        if (details) {    
-            await prisma.materialDetail.deleteMany({ where: { materialId: id } });    
-            await prisma.materialDetail.createMany({    
-                data: details.map(detail => ({    
-                    batchNumber: detail.batchNumber,    
-                    quantity: detail.quantity,    
-                    expiredAt: detail.expiredAt ? new Date(detail.expiredAt) : null,    
-                    materialId: id,    
-                })),    
-            });    
-        }    
-    
-        return updatedMaterial;    
-    },    
-    deleteMaterial: async ({ id }) => {    
-        await prisma.material.delete({ where: { id: id } });    
-        return "Material deleted successfully";    
-    },    
-    requestStock: async ({ materialId, requestedQuantity }) => {    
-        const material = await prisma.material.findUnique({    
-            where: { id: materialId },    
-            include: {    
-                materialDetails: true,    
-            },    
-        });    
-    
-        if (!material) {    
-            throw new Error("Material not found");    
-        }    
-    
-        const totalStock = material.materialDetails.reduce((total, detail) => {    
-            return total + detail.quantity;    
-        }, 0);    
-    
-        if (requestedQuantity > totalStock) {    
-            throw new Error("Requested quantity exceeds available stock");    
-        }    
-    
-        let remainingQuantity = requestedQuantity;    
-    
-        for (const detail of material.materialDetails) {    
-            if (remainingQuantity <= 0) break;    
-    
-            if (detail.quantity >= remainingQuantity) {    
-                await prisma.materialDetail.update({    
-                    where: { id: detail.id },    
-                    data: { quantity: detail.quantity - remainingQuantity },    
-                });    
-                remainingQuantity = 0;    
-            } else {    
-                remainingQuantity -= detail.quantity;    
-                await prisma.materialDetail.update({    
-                    where: { id: detail.id },    
-                    data: { quantity: 0 },    
-                });    
-            }    
-        }    
-    
-        await prisma.materialLog.create({    
-            data: {    
-                material_id: materialId,    
-                quantity: requestedQuantity,    
-                message: "Request Bahan Baku Berhasil",    
-                status: "Accepted",    
-            },    
-        });    
-    
-        return {    
-            MaterialId: material.id,    
-            MaterialName: material.name,    
-            StokRequest: requestedQuantity,    
-            Message: "Request Produk Berhasil",    
-        };    
-    },    
-};    
+const resolvers = {  
+    // Queries  
+    users: async () => {  
+        return await prisma.user.findMany({  
+            select: {  
+                id: true,  
+                email: true,  
+                username: true,  
+                firstName: true,  
+                lastName: true,  
+                phone: true,  
+                role: true,  
+                isActive: true,  
+                createdAt: true,  
+                updatedAt: true,  
+            },  
+        });  
+    },  
+    user: async ({ id }) => {  
+        return await prisma.user.findUnique({  
+            where: { id: id },  
+            select: {  
+                id: true,  
+                email: true,  
+                username: true,  
+                firstName: true,  
+                lastName: true,  
+                phone: true,  
+                role: true,  
+                isActive: true,  
+                createdAt: true,  
+                updatedAt: true,  
+            },  
+        });  
+    },  
   
-module.exports = resolvers;
+    // Mutations  
+    createUser: async ({ input }) => {  
+    const { username, email, firstName, lastName, password } = input;  
+  
+    const existingUser = await prisma.user.findUnique({  
+        where: { email: email },  
+    });  
+  
+    if (existingUser) {  
+        throw new Error("User already exists");  
+    }  
+  
+    const hashedPassword = await bcrypt.hash(password, 10);  
+    console.log("Creating user with data:", { username, email, firstName, lastName });  
+      
+    const user = await prisma.user.create({  
+        data: {  
+            username: username,  
+            email: email,  
+            firstName: firstName,  
+            lastName: lastName,  
+            password: hashedPassword,  
+            role: 'user',  
+        },  
+    });  
+  
+    console.log("User created:", user);  
+  
+    const token = generateToken(user.id);  
+  
+    return {  
+        id: user.id,  
+        username: user.username,  
+        email: user.email,  
+        firstName: firstName,  
+        lastName: lastName,  
+        token: token,  
+    };  
+},   
+  
+    login: async ({ email, password }) => {  
+        const user = await prisma.user.findUnique({  
+            where: { email: email },  
+        });  
+  
+        if (!user) {  
+            throw new Error("Invalid email or password");  
+        }  
+  
+        const isPasswordValid = await bcrypt.compare(password, user.password);  
+        if (!isPasswordValid) {  
+            throw new Error("Invalid email or password");  
+        }  
+  
+        const token = generateToken(user.id);  
+  
+        return {  
+            token: token,  
+            user: {  
+                id: user.id,  
+                username: user.username,  
+                email: user.email,  
+            },  
+        };  
+    }, 
+    
+    logout: async ({ token }) => {  
+        try {  
+            const decoded = jwt.verify(token, 'jkfjaojrmmkdmfaokp');  
+            const userId = decoded.id;  
+  
+            const user = await prisma.user.findUnique({  
+                where: { id: userId },  
+            });  
+  
+            if (!user) {  
+                throw new Error("Invalid token or user not found");  
+            }  
+
+  
+            return "User logged out successfully";  
+        } catch (error) {  
+            console.error(error);  
+            throw new Error("Internal server error");  
+        }  
+    },  
+  
+    updateUser: async ({ id, input }) => {  
+        const user = await prisma.user.findUnique({ where: { id: id } });  
+  
+        if (!user) {  
+            throw new Error("User not found");  
+        }  
+  
+        const updatedUser = await prisma.user.update({  
+            where: { id: id },  
+            data: input,  
+        });  
+  
+        return updatedUser;  
+    },  
+  
+    deleteUser: async ({ id }) => {  
+        await prisma.user.delete({ where: { id: id } });  
+        return "User deleted successfully";  
+    },  
+};  
+  
+module.exports = resolvers;  

@@ -50,7 +50,6 @@ const findProducts = async (req, res) => {
 const createProduct = async (req, res) => {  
     const { name, description, categoryId, details } = req.body;  
   
-    // Validate details  
     if (!Array.isArray(details)) {  
         return res.status(400).send({  
             success: false,  
@@ -87,7 +86,7 @@ const createProduct = async (req, res) => {
         });  
   
     } catch (error) {  
-        console.error(error); // Log the error to the console    
+        console.error(error);
         res.status(500).send({  
             success: false,  
             message: "Internal server error",  

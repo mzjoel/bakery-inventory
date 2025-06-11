@@ -38,7 +38,7 @@ const resolvers = {
         });    
     },    
   
-    // Mutations    
+
     createCategory: async ({ name, description }) => {    
         return await prisma.category.create({    
             data: {    
@@ -115,14 +115,81 @@ const resolvers = {
   
         return updatedMaterial;    
     },    
-    deleteMaterial: async ({ id }) => {    
-        await prisma.material.delete({ where: { id: id } });    
-        return "Material deleted successfully";    
-    },    
-    requestStock: async ({ materialId, requestedQuantity }) => {    
-        // Implementation of stock request logic here    
+    deleteMaterial: async ({ id }) => {  
+    await prisma.materialDetail.deleteMany({  
+        where: { materialId: id },  
+    });  
+  
+    await prisma.material.delete({ where: { id: id } });  
+    return "Material deleted successfully";  
+},    
+   requestStock: async ({ materialId, requestedQuantity }) => {    
+    try {     
+        const material = await prisma.material.findUnique({    
+            where: { id: materialId },    
+            include: { materialDetails: true },    
+        });    
+  
+        if (!material) {    
+            await prisma.materialLog.create({    
+                data: {    
+                    material_id: materialId,    
+                    quantity: requestedQuantity,    
+                    message: "Material not found",    
+                    status: "Rejected",    
+                },    
+            });    
+            return "Material not found";    
+        }    
+  
+        const totalStock = material.materialDetails.reduce((total, detail) => total + detail.quantity, 0);    
+  
+        if (requestedQuantity > totalStock) {    
+            await prisma.materialLog.create({    
+                data: {    
+                    material_id: materialId,    
+                    quantity: requestedQuantity,    
+                    message: "Request ditolak",    
+                    status: "Rejected",    
+                },    
+            });    
+            return "Request ditolak";    
+        }    
+  
+        let remainingQuantity = requestedQuantity;    
+        for (const detail of material.materialDetails) {    
+            if (remainingQuantity <= 0) break;    
+  
+            if (detail.quantity >= remainingQuantity) {    
+                await prisma.materialDetail.update({    
+                    where: { id: detail.id },    
+                    data: { quantity: detail.quantity - remainingQuantity },    
+                });    
+                remainingQuantity = 0;   
+            } else {    
+                remainingQuantity -= detail.quantity;    
+                await prisma.materialDetail.update({    
+                    where: { id: detail.id },    
+                    data: { quantity: 0 },    
+                });    
+            }    
+        }    
+  
+        await prisma.materialLog.create({    
+            data: {    
+                material_id: materialId,    
+                quantity: requestedQuantity,    
+                message: "Request Bahan Baku Berhasil",    
+                status: "Accepted",    
+            },    
+        });    
+  
         return "Stock request processed";    
-    },    
+    } catch (error) {    
+        console.error(error);    
+        throw new Error("Internal server error");    
+    }    
+},           
 };    
   
 module.exports = resolvers;  

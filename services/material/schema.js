@@ -63,4 +63,4 @@ input MaterialDetailInput {
 }    
 `);  
   
-module.exports = schema;  
+module.exports = schema; 

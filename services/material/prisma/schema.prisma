@@ -54,7 +54,7 @@ model MaterialDetail {
   @@map("material_details")
 }
 
-model materialLog {  
+model MaterialLog {  
   id          String   @id @default(auto()) @map("_id") @db.ObjectId  
   material_id  String   @db.ObjectId // ID produk yang direquest  
   quantity    Int      // Stok yang direquest  
