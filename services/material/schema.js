@@ -1,19 +1,19 @@
 const { buildSchema } = require('graphql');  
   
 const schema = buildSchema(`  
-type ProductDetail {  
+type MaterialDetail {  
     id: ID!  
     batchNumber: String  
     quantity: Int  
     expiredAt: String  
 }  
   
-type Product {      
+type Material {      
     id: ID!      
     name: String!      
     description: String      
     category: Category      
-    productDetails: [ProductDetail]      
+    materialDetails: [MaterialDetail]      
     createdAt: String      
     updatedAt: String      
 }      
@@ -24,55 +24,47 @@ type Category {
     description: String      
     createdAt: String      
     updatedAt: String      
-    products: [Product]      
+    materials: [Material]      
 }      
   
-type Order {      
+type MaterialLog {      
     id: ID!      
-    productId: ID!      
+    material_id: ID!      
     quantity: Int      
+    message: String      
     status: String      
     createdAt: String      
 }      
   
 type Query {      
-    products: [Product]      
-    product(id: ID!): Product      
+    materials: [Material]      
+    material(id: ID!): Material      
     categories: [Category]      
     category(id: ID!): Category      
-    orders: [Order]      
-    order(id: ID!): Order      
+    materialLogs(status: String): [MaterialLog]      
 }      
   
-input ProductInput {      
+input MaterialInput {      
     name: String!      
     description: String      
     categoryId: ID!      
-    details: [ProductDetailInput]      
+    details: [MaterialDetailInput]      
 }      
   
-input ProductDetailInput {      
+input MaterialDetailInput {      
     batchNumber: String      
     quantity: Int      
     expiredAt: String      
 }      
   
-input OrderInput {      
-    productId: ID!      
-    quantity: Int      
-}      
-  
 type Mutation {      
-    createProduct(input: ProductInput): Product      
-    updateProduct(id: ID!, input: ProductInput): Product      
-    deleteProduct(id: ID!): String      
+    createMaterial(input: MaterialInput): Material      
+    updateMaterial(id: ID!, input: MaterialInput): Material      
+    deleteMaterial(id: ID!): String      
     createCategory(name: String!, description: String): Category      
     updateCategory(id: ID!, name: String!, description: String): Category      
     deleteCategory(id: ID!): String      
-    createOrder(input: OrderInput): Order      
-    updateOrder(id: ID!, input: OrderInput): Order      
-    deleteOrder(id: ID!): String      
 }      
 `);  
   
-module.exports = schema;  
+module.exports = schema; 
