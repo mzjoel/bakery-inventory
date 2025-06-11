@@ -1,20 +1,26 @@
-# Use the official Node.js image as a base image  
-FROM node:18  
-
-# Set the working directory in the container  
+# Menggunakan image Node.js sebagai base image  
+FROM node:20   
+  
+# Set working directory  
 WORKDIR /usr/src/app  
+  
+# Menyalin package.json dan package-lock.json  
+COPY package*.json ./
+COPY prisma ./prisma/
 
-# Copy package.json and package-lock.json to the working directory  
-COPY package*.json ./  
-
-# Install dependencies  
+  
+# Menginstal dependencies  
 RUN npm install  
-
-# Copy the rest of the application code to the working directory  
-COPY . .  
-
-# Expose the port the app runs on  
-EXPOSE 4000  
-
-# Command to run the application  
-CMD ["npm", "start"]  
+  
+# Menyalin semua file dari folder material  
+COPY . .
+  
+# Mengatur variabel lingkungan  
+ENV DATABASE_URL="mongodb+srv://recoffee:recoffee@cluster0.onmg8nn.mongodb.net/material_service?retryWrites=true&w=majority&appName=Cluster0"  
+  
+RUN npx prisma generate
+# Mengekspos port yang digunakan oleh aplikasi  
+EXPOSE 4002  
+  
+# Menjalankan aplikasi  
+CMD ["node", "server.js"]  

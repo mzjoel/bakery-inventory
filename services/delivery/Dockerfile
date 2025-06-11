@@ -12,16 +12,16 @@ COPY prisma ./prisma/
 # Menginstal dependencies  
 RUN npm install  
   
-# Menyalin semua file dari folder user  
-COPY . .
+# Menyalin semua file dari folder inventory-services  
+COPY . . 
   
 # Mengatur variabel lingkungan  
-ENV DATABASE_URL="mongodb+srv://recoffee:recoffee@cluster0.onmg8nn.mongodb.net/user_service?retryWrites=true&w=majority&appName=Cluster0"  
+ENV DATABASE_URL="mongodb+srv://recoffee:recoffee@cluster0.onmg8nn.mongodb.net/delivery_service?retryWrites=true&w=majority&appName=Cluster0"  
   
 RUN npx prisma generate
 
 # Mengekspos port yang digunakan oleh aplikasi  
-EXPOSE 4004  
+EXPOSE 4001  
   
 # Menjalankan aplikasi  
 CMD ["node", "server.js"]  

@@ -8,20 +8,19 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-  
 # Menginstal dependencies  
 RUN npm install  
   
-# Menyalin semua file dari folder user  
+# Menyalin semua file dari folder production  
 COPY . .
   
 # Mengatur variabel lingkungan  
-ENV DATABASE_URL="mongodb+srv://recoffee:recoffee@cluster0.onmg8nn.mongodb.net/user_service?retryWrites=true&w=majority&appName=Cluster0"  
+ENV DATABASE_URL="mongodb+srv://recoffee:recoffee@cluster0.onmg8nn.mongodb.net/production_service?retryWrites=true&w=majority&appName=Cluster0"  
   
 RUN npx prisma generate
 
 # Mengekspos port yang digunakan oleh aplikasi  
-EXPOSE 4004  
+EXPOSE 4003  
   
 # Menjalankan aplikasi  
 CMD ["node", "server.js"]  

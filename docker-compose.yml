@@ -1,0 +1,47 @@
+version: '3.8'  
+  
+services:  
+  delivery-service:  
+    build:  
+      context: ./services/delivery  
+      dockerfile: Dockerfile  
+    ports:  
+      - "4000:4000"  
+    environment:  
+      - DATABASE_URL=mongodb+srv://recoffee:recoffee@cluster0.onmg8nn.mongodb.net/delivery_service?retryWrites=true&w=majority&appName=Cluster0  
+  
+  inventory-service:  
+    build:  
+      context: ./services/inventory 
+      dockerfile: Dockerfile  
+    ports:  
+      - "4001:4001"  
+    environment:  
+      - DATABASE_URL=mongodb+srv://recoffee:recoffee@cluster0.onmg8nn.mongodb.net/inventory_service?retryWrites=true&w=majority&appName=Cluster0  
+  
+  material-service:  
+    build:  
+      context: ./services/material  
+      dockerfile: Dockerfile  
+    ports:  
+      - "4002:4002"  
+    environment:  
+      - DATABASE_URL=mongodb+srv://recoffee:recoffee@cluster0.onmg8nn.mongodb.net/material_service?retryWrites=true&w=majority&appName=Cluster0  
+  
+  production-service:  
+    build:  
+      context: ./services/production
+      dockerfile: Dockerfile  
+    ports:  
+      - "4003:4003"  
+    environment:  
+      - DATABASE_URL=mongodb+srv://recoffee:recoffee@cluster0.onmg8nn.mongodb.net/production_service?retryWrites=true&w=majority&appName=Cluster0  
+  
+  user-service:  
+    build:  
+      context: ./services/user  
+      dockerfile: Dockerfile  
+    ports:  
+      - "4004:4004"  
+    environment:  
+      - DATABASE_URL=mongodb+srv://recoffee:recoffee@cluster0.onmg8nn.mongodb.net/user_service?retryWrites=true&w=majority&appName=Cluster0  

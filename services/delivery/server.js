@@ -4,7 +4,7 @@ const schema = require('./schema'); // Ensure this path is correct
 const resolvers = require('./resolvers'); // Ensure this path is correct  
   
 const app = express();  
-const PORT = 4000;  
+const PORT = 4069;  
   
 app.use('/graphql', graphqlHTTP({  
     schema: schema,  
