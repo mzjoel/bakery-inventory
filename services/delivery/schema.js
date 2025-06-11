@@ -1,56 +1,55 @@
+
 const { buildSchema } = require('graphql');  
   
 const schema = buildSchema(`  
-    type Delivery {  
-        id: ID!  
-        deliveryId: String!  
-        deliveryDate: String!  
-        receivedDate: String  
-        status: DeliveryStatus!  
-        driver: String  
-        createdAt: String!  
-        updatedAt: String!  
-    }  
   
-    type DeliveryDetail {  
-        id: ID!  
-        deliveryId: ID!  
-        productId: String!  
-        quantity: Int!  
-        notes: String  
-        createdAt: String!  
-        updatedAt: String!  
-    }  
+type Delivery {  
+    id: ID!  
+    deliveryId: String!  
+    deliveryDate: String!  
+    receivedDate: String  
+    status: DeliveryStatus!  
+    driver: String!  
+    createdAt: String!  
+    updatedAt: String  
+    details: [DeliveryDetail]  
+}  
   
-    enum DeliveryStatus {  
-        PENDING  
-        IN_PROGRESS  
-        DELIVERED  
-        CANCELLED  
-    }  
+type DeliveryDetail {  
+    id: ID!  
+    deliveryId: ID!  
+    productId: String!  
+    quantity: Int!  
+    notes: String  
+    createdAt: String!  
+    updatedAt: String  
+}  
   
-    type Query {  
-        deliveries: [Delivery]  
-        delivery(id: ID!): Delivery  
-    }  
+enum DeliveryStatus {  
+    PENDING  
+    IN_PROGRESS  
+    DELIVERED  
+    CANCELLED  
+}  
   
-    input DeliveryInput {  
-        deliveryId: String!  
-        driver: String  
-        details: [DeliveryDetailInput]!  
-    }  
+type Query {  
+    findAllDelivery: [Delivery]  
+}  
   
-    input DeliveryDetailInput {  
-        productId: String!  
-        quantity: Int!  
-        notes: String  
-    }  
+type Mutation {  
+    createDelivery(products: [ProductInput]!, sender: SenderInput!): Delivery  
+    updateDeliveryStatus(deliveryId: String!, status: Boolean!): Delivery  
+}  
   
-    type Mutation {  
-        createDelivery(input: DeliveryInput): Delivery  
-        updateDelivery(id: ID!, input: DeliveryInput): Delivery  
-        deleteDelivery(id: ID!): String  
-    }  
+input ProductInput {  
+    productId: String!  
+    quantity: Int!  
+    notes: String  
+}  
+  
+input SenderInput {  
+    driver: String!  
+}  
 `);  
   
 module.exports = schema;  

@@ -1,78 +1,66 @@
 const { buildSchema } = require('graphql');  
   
 const schema = buildSchema(`  
-type ProductDetail {  
-    id: ID!  
-    batchNumber: String  
-    quantity: Int  
-    expiredAt: String  
-}  
   
-type Product {      
-    id: ID!      
-    name: String!      
-    description: String      
-    category: Category      
-    productDetails: [ProductDetail]      
-    createdAt: String      
-    updatedAt: String      
-}      
+type Category {    
+    id: ID!    
+    name: String!    
+    description: String    
+    createdAt: String!    
+    updatedAt: String    
+}    
   
-type Category {      
-    id: ID!      
-    name: String!      
-    description: String      
-    createdAt: String      
-    updatedAt: String      
-    products: [Product]      
-}      
+type MaterialDetail {    
+    id: ID!    
+    batchNumber: String    
+    quantity: Int!    
+    expiredAt: String    
+    materialId: ID!    
+}    
   
-type Order {      
-    id: ID!      
-    productId: ID!      
-    quantity: Int      
-    status: String      
-    createdAt: String      
-}      
+type Material {    
+    id: ID!    
+    name: String!    
+    description: String    
+    categoryId: ID!    
+    category: Category    
+    materialDetails: [MaterialDetail]    
+    createdAt: String!    
+    updatedAt: String    
+}    
   
-type Query {      
-    products: [Product]      
-    product(id: ID!): Product      
-    categories: [Category]      
-    category(id: ID!): Category      
-    orders: [Order]      
-    order(id: ID!): Order      
-}      
+type MaterialLog {    
+    id: ID!    
+    material_id: ID!    
+    quantity: Int!    
+    message: String!    
+    status: String!    
+    createdAt: String!    
+}    
   
-input ProductInput {      
-    name: String!      
-    description: String      
-    categoryId: ID!      
-    details: [ProductDetailInput]      
-}      
+type Query {    
+    findCategories: [Category]    
+    findCategoryById(id: ID!): Category    
+    findMaterials: [Material]    
+    findMaterialById(id: ID!): Material    
+    getMaterialLogs(status: String): [MaterialLog]    
+}    
   
-input ProductDetailInput {      
-    batchNumber: String      
-    quantity: Int      
-    expiredAt: String      
-}      
+type Mutation {    
+    createCategory(name: String!, description: String): Category    
+    updateCategory(id: ID!, name: String!, description: String): Category    
+    deleteCategory(id: ID!): String    
+    createMaterial(name: String!, description: String, categoryId: ID!, details: [MaterialDetailInput]): Material    
+    updateMaterial(id: ID!, name: String, description: String, categoryId: ID, details: [MaterialDetailInput]): Material    
+    deleteMaterial(id: ID!): String    
+    requestStock(materialId: ID!, requestedQuantity: Int!): String    
+}    
   
-input OrderInput {      
-    productId: ID!      
-    quantity: Int      
-}      
-  
-type Mutation {      
-    createProduct(input: ProductInput): Product      
-    updateProduct(id: ID!, input: ProductInput): Product      
-    deleteProduct(id: ID!): String      
-    createCategory(name: String!, description: String): Category      
-    updateCategory(id: ID!, name: String!, description: String): Category      
-    deleteCategory(id: ID!): String      
-    createOrder(input: OrderInput): Order      
-    updateOrder(id: ID!, input: OrderInput): Order      
-    deleteOrder(id: ID!): String      
-}      
+input MaterialDetailInput {    
+    batchNumber: String    
+    quantity: Int!    
+    expiredAt: String    
+}    
 `);  
   
 module.exports = schema;  
