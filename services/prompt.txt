@@ -1,0 +1,80 @@
+Saya sedang menyusun user service untuk authentikasi sederhana menggunakan express js, prisma ORM, serta JWT
+
+Buatkan saya fitur register untuk user, sehingga output yang didapatkan akan mendapatkan akun dengan default role user 
+
+berikut template yang sudah saya sediakan
+
+controller
+const { PrismaClient } = require('@prisma/client');
+
+
+const prisma = new PrismaClient();
+
+
+
+const register = async (req, res) => {  
+    try {    
+        const user = await prisma.user.findMany({  
+            include: {  
+                category: true,   
+                materialDetails: true,  
+            },  
+        });  
+  
+        res.status(200).send({  
+            success: true,  
+            message: "Get All Material Successfully",  
+            data: materials,  
+        });  
+  
+    } catch (error) {  
+        console.error(error); // Log error untuk debugging  
+        res.status(500).send({  
+            success: false,  
+            message: "Internal server error",  
+        });  
+    }  
+};  
+
+module.exports = {
+    register,
+}
+
+index.js
+//import express
+const express = require('express')
+
+//import router
+const router = require('./routes')
+
+const cors = require('cors')
+
+//import bodyParser
+const bodyParser = require('body-parser')
+
+//init app
+const app = express()
+
+app.use(cors())
+
+//define port
+const port = 3000;
+
+//use body parser
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json())
+
+//route
+app.get('/', (req, res) => {
+  res.send('Hello World!')
+})
+
+//define routes
+app.use('/api', router)
+
+//start server
+app.listen(port, () => {
+    console.log(`Server started on port ${port}`);
+})
